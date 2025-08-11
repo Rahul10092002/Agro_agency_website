@@ -198,6 +198,9 @@ export default function AdminCategoriesPage() {
                       variant="outline"
                       size="sm"
                       className="flex-1 font-hindi bg-transparent"
+                      onClick={() =>
+                        (window.location.href = `/admin/categories/edit/${category._id}`)
+                      }
                     >
                       <Edit className="h-4 w-4 mr-1" />
                       संपादित करें

@@ -137,6 +137,9 @@ export function PublicFooter() {
             © 2024 {contactInfo.shopName}. सभी अधिकार सुरक्षित। | मालिक:{" "}
             {contactInfo.ownerName}
           </p>
+          <p className="text-gray-500 font-hindi text-sm mt-2">
+            डेवलपर: राहुल मनोहर पाटीदार (Rahul Manohar Patidar)
+          </p>
         </div>
       </div>
     </footer>
