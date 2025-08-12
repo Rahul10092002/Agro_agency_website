@@ -4,6 +4,9 @@ import Product from "@/models/Product";
 import { authenticateAdmin } from "@/middleware/auth";
 import { applyOffersToProducts } from "@/lib/offer-utils";
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 // GET - Fetch all products with optional filtering
 export async function GET(request: NextRequest) {
   try {

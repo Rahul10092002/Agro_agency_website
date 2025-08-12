@@ -4,6 +4,9 @@ import Offer from "@/models/Offer";
 import Product from "@/models/Product";
 import Category from "@/models/Category";
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 // GET /api/offers - Get active offers for public use
 export async function GET(request: NextRequest) {
   try {

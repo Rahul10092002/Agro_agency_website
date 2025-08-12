@@ -5,6 +5,9 @@ import Product from "@/models/Product";
 import Category from "@/models/Category";
 import { authenticateAdmin } from "@/middleware/auth";
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 // GET /api/admin/offers - Get all offers
 export async function GET(request: NextRequest) {
   try {
