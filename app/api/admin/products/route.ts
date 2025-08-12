@@ -14,13 +14,26 @@ export async function GET(request: NextRequest) {
 
     await dbConnect();
 
+    const shopId = process.env.SHOP_ID;
+
+    if (!shopId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "SHOP_ID environment variable is not configured",
+          messageHindi: "दुकान ID कॉन्फ़िगर नहीं है",
+        },
+        { status: 500 }
+      );
+    }
+
     const url = new URL(request.url);
     const search = url.searchParams.get("search");
     const category = url.searchParams.get("category");
     const page = parseInt(url.searchParams.get("page") || "1");
     const limit = parseInt(url.searchParams.get("limit") || "20");
 
-    const query: any = {};
+    const query: any = { shopId };
 
     if (search) {
       query.$or = [
@@ -77,6 +90,19 @@ export async function POST(request: NextRequest) {
 
     await dbConnect();
 
+    const shopId = process.env.SHOP_ID;
+
+    if (!shopId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "SHOP_ID environment variable is not configured",
+          messageHindi: "दुकान ID कॉन्फ़िगर नहीं है",
+        },
+        { status: 500 }
+      );
+    }
+
     const productData = await request.json();
 
     // Validate required fields
@@ -98,6 +124,7 @@ export async function POST(request: NextRequest) {
 
     const product = new Product({
       ...productData,
+      shopId,
       createdAt: new Date(),
       updatedAt: new Date(),
     });

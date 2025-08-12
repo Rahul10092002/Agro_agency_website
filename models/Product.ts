@@ -7,6 +7,7 @@ export interface IProduct extends Document {
   originalPrice?: number;
   unit: string;
   categoryId: string;
+  shopId: string;
   description?: string;
   usageInstructions?: string;
   benefits?: string[];
@@ -56,6 +57,11 @@ const ProductSchema = new Schema<IProduct>(
     categoryId: {
       type: String,
       required: [true, "श्रेणी आवश्यक है"],
+    },
+    shopId: {
+      type: Schema.Types.ObjectId,
+      ref: "Shop",
+      required: [true, "दुकान ID आवश्यक है"],
     },
     description: {
       type: String,
@@ -109,8 +115,11 @@ const ProductSchema = new Schema<IProduct>(
 // Index for search functionality
 ProductSchema.index({ name: "text", nameEnglish: "text", description: "text" });
 ProductSchema.index({ categoryId: 1 });
+ProductSchema.index({ shopId: 1 });
 ProductSchema.index({ inStock: 1 });
 ProductSchema.index({ featured: 1 });
+ProductSchema.index({ shopId: 1, categoryId: 1 });
+ProductSchema.index({ shopId: 1, featured: 1 });
 
 // Virtual to calculate effective price after offers
 ProductSchema.virtual("effectivePrice").get(function () {

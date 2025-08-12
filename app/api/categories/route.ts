@@ -7,7 +7,20 @@ export async function GET(request: NextRequest) {
   try {
     await dbConnect();
 
-    const categories = await Category.find({}).sort({ name: 1 }).lean();
+    const shopId = process.env.SHOP_ID;
+
+    if (!shopId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "SHOP_ID environment variable is not configured",
+          messageHindi: "दुकान ID कॉन्फ़िगर नहीं है",
+        },
+        { status: 500 }
+      );
+    }
+
+    const categories = await Category.find({ shopId }).sort({ name: 1 }).lean();
 
     return NextResponse.json({
       success: true,

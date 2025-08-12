@@ -17,7 +17,7 @@ import {
   Phone,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { contactInfo } from "@/lib/data";
+import { useContactInfo } from "@/contexts/shop-context";
 
 interface Product {
   _id: string;
@@ -55,13 +55,12 @@ interface Category {
 }
 
 export default function HomePage() {
+  const { contactInfo, loading: shopLoading } = useContactInfo();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [popularProducts, setPopularProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-
-
 
   const fetchData = async () => {
     try {
@@ -158,15 +157,16 @@ export default function HomePage() {
                 size="lg"
                 variant="outline"
                 className="border-white text-white hover:bg-white hover:text-green-700 font-hindi text-lg px-8 py-3 touch-target bg-transparent"
-                onClick={() =>
+                onClick={() => {
+                  if (!contactInfo?.whatsapp) return;
                   window.open(
                     `https://wa.me/${contactInfo.whatsapp.replace(
                       /[^0-9]/g,
                       ""
                     )}`,
                     "_blank"
-                  )
-                }
+                  );
+                }}
               >
                 <MessageCircle className="mr-2 h-5 w-5" />
                 WhatsApp पर संपर्क करें
@@ -442,26 +442,28 @@ export default function HomePage() {
             <Button
               size="lg"
               className="bg-white text-primary-green hover:bg-gray-100 font-hindi text-lg px-8 py-3 touch-target"
-              onClick={() =>
-                (window.location.href = `tel:${contactInfo.phone}`)
-              }
+              onClick={() => {
+                if (!contactInfo?.phone) return;
+                window.location.href = `tel:${contactInfo.phone}`;
+              }}
             >
               <Phone className="mr-2 h-5 w-5" />
-              फोन करें: {contactInfo.phone}
+              फोन करें: {contactInfo?.phone || "जल्द आएगा"}
             </Button>
             <Button
               size="lg"
               variant="outline"
               className="border-white text-white hover:bg-white hover:text-primary-green font-hindi text-lg px-8 py-3 touch-target bg-transparent"
-              onClick={() =>
+              onClick={() => {
+                if (!contactInfo?.whatsapp) return;
                 window.open(
                   `https://wa.me/${contactInfo.whatsapp.replace(
                     /[^0-9]/g,
                     ""
                   )}`,
                   "_blank"
-                )
-              }
+                );
+              }}
             >
               <MessageCircle className="mr-2 h-5 w-5" />
               WhatsApp पर चैट करें

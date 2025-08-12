@@ -15,6 +15,19 @@ export async function GET(request: NextRequest) {
 
     await dbConnect();
 
+    const shopId = process.env.SHOP_ID;
+
+    if (!shopId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "SHOP_ID environment variable is not configured",
+          messageHindi: "दुकान ID कॉन्फ़िगर नहीं है",
+        },
+        { status: 500 }
+      );
+    }
+
     const url = new URL(request.url);
     const page = parseInt(url.searchParams.get("page") || "1");
     const limit = parseInt(url.searchParams.get("limit") || "20");
@@ -23,8 +36,8 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit;
 
-    // Build query
-    const query: any = {};
+    // Build query - include shopId filter
+    const query: any = { shopId };
 
     if (status === "active") {
       const now = new Date();
@@ -50,14 +63,20 @@ export async function GET(request: NextRequest) {
       Offer.countDocuments(query),
     ]);
 
-    // Get related products and categories for each offer
+    // Get related products and categories for each offer (filtered by shopId)
     const offersWithDetails = await Promise.all(
       offers.map(async (offer) => {
         const [products, categories] = await Promise.all([
-          Product.find({ _id: { $in: offer.productIds } })
+          Product.find({
+            _id: { $in: offer.productIds },
+            shopId,
+          })
             .select("name nameEnglish price images")
             .lean(),
-          Category.find({ _id: { $in: offer.categoryIds } })
+          Category.find({
+            _id: { $in: offer.categoryIds },
+            shopId,
+          })
             .select("name nameEnglish")
             .lean(),
         ]);
@@ -103,6 +122,19 @@ export async function POST(request: NextRequest) {
     }
 
     await dbConnect();
+
+    const shopId = process.env.SHOP_ID;
+
+    if (!shopId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "SHOP_ID environment variable is not configured",
+          messageHindi: "दुकान ID कॉन्फ़िगर नहीं है",
+        },
+        { status: 500 }
+      );
+    }
 
     const body = await request.json();
     const {
@@ -152,32 +184,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify products exist
+    // Verify products exist in this shop
     if (productIds && productIds.length > 0) {
       const existingProducts = await Product.find({
         _id: { $in: productIds },
+        shopId,
       }).countDocuments();
       if (existingProducts !== productIds.length) {
         return NextResponse.json(
           {
             success: false,
-            message: "कुछ उत्पाद मौजूद नहीं हैं",
+            message: "कुछ उत्पाद मौजूद नहीं हैं या इस दुकान के नहीं हैं",
           },
           { status: 400 }
         );
       }
     }
 
-    // Verify categories exist
+    // Verify categories exist in this shop
     if (categoryIds && categoryIds.length > 0) {
       const existingCategories = await Category.find({
         _id: { $in: categoryIds },
+        shopId,
       }).countDocuments();
       if (existingCategories !== categoryIds.length) {
         return NextResponse.json(
           {
             success: false,
-            message: "कुछ श्रेणियां मौजूद नहीं हैं",
+            message: "कुछ श्रेणियां मौजूद नहीं हैं या इस दुकान की नहीं हैं",
           },
           { status: 400 }
         );
@@ -198,6 +232,7 @@ export async function POST(request: NextRequest) {
       endDate: new Date(endDate),
       usageLimit,
       applicableToAll: applicableToAll || false,
+      shopId,
     });
 
     await offer.save();

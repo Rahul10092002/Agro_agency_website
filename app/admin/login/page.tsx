@@ -32,7 +32,7 @@ export default function AdminLoginPage() {
     if (success) {
       router.push("/admin/dashboard")
     } else {
-      setError("गलत ईमेल या पासवर्ड। कृपया दोबारा कोशिश करें।")
+      setError("अवैध ईमेल या पासवर्ड या आप इस दुकान के व्यवस्थापक नहीं हैं")
     }
 
     setIsLoading(false)

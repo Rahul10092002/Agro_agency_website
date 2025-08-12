@@ -22,6 +22,7 @@ import {
   Shield,
   Lightbulb,
 } from "lucide-react";
+import { useContactInfo } from "@/contexts/shop-context";
 
 interface Product {
   _id: string;
@@ -60,6 +61,7 @@ interface Category {
 }
 
 export default function ProductDetailPage() {
+  const { contactInfo } = useContactInfo();
   const params = useParams();
   const productId = params?.id as string;
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -67,11 +69,6 @@ export default function ProductDetailPage() {
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-
-  const contactInfo = {
-    phone: "+91-9876543210", // TODO: Move to environment config
-    whatsapp: "+91-9876543210",
-  };
 
   const fetchProduct = async () => {
     try {
@@ -155,12 +152,21 @@ export default function ProductDetailPage() {
     );
   }
 
-  const category: Category | undefined = undefined; // TODO: Fetch category info from API
+  const category: Category | null = null; // TODO: Fetch category info from API
   const discountedPrice = product?.hasActiveOffer
     ? product.effectivePrice
     : null;
 
   const handleWhatsAppContact = () => {
+    if (!contactInfo?.whatsapp || !product) {
+      toast({
+        title: "त्रुटि",
+        description: "संपर्क जानकारी उपलब्ध नहीं है",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const message = `नमस्ते! मुझे ${product.name} के बारे में जानकारी चाहिए। कीमत: ₹${product.price} ${product.unit}`;
     const whatsappUrl = `https://wa.me/${contactInfo.whatsapp.replace(
       /[^0-9]/g,
@@ -170,6 +176,14 @@ export default function ProductDetailPage() {
   };
 
   const handlePhoneCall = () => {
+    if (!contactInfo?.phone) {
+      toast({
+        title: "त्रुटि",
+        description: "फोन नंबर उपलब्ध नहीं है",
+        variant: "destructive",
+      });
+      return;
+    }
     window.location.href = `tel:${contactInfo.phone}`;
   };
 
@@ -193,7 +207,7 @@ export default function ProductDetailPage() {
               href={`/products?category=${product.categoryId}`}
               className="hover:text-primary-green"
             >
-              {category?.name || "श्रेणी"}
+              {(category as Category | null)?.name || "श्रेणी"}
             </a>
             <span>/</span>
             <span className="text-gray-900">{product.name}</span>
@@ -252,7 +266,7 @@ export default function ProductDetailPage() {
           <div>
             <div className="mb-6">
               <Badge variant="secondary" className="mb-2 font-hindi">
-                {category?.name || "श्रेणी"}
+                {(category as Category | null)?.name || "श्रेणी"}
               </Badge>
               <h1 className="text-3xl font-bold text-gray-900 font-hindi mb-4">
                 {product.name}
@@ -315,7 +329,7 @@ export default function ProductDetailPage() {
               <Button
                 onClick={handleWhatsAppContact}
                 className="w-full bg-green-600 hover:bg-green-700 font-hindi text-lg py-3 touch-target"
-                disabled={!product.inStock}
+                disabled={!product.inStock || !contactInfo?.whatsapp}
               >
                 <MessageCircle className="h-5 w-5 mr-2" />
                 WhatsApp पर संपर्क करें
@@ -324,10 +338,10 @@ export default function ProductDetailPage() {
                 onClick={handlePhoneCall}
                 variant="outline"
                 className="w-full font-hindi text-lg py-3 touch-target bg-transparent"
-                disabled={!product.inStock}
+                disabled={!product.inStock || !contactInfo?.phone}
               >
                 <Phone className="h-5 w-5 mr-2" />
-                फोन करें: {contactInfo.phone}
+                फोन करें: {contactInfo?.phone || "जल्द आएगा"}
               </Button>
             </div>
 

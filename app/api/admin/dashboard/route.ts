@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import dbConnect from "@/lib/mongodb";
+import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 import Category from "@/models/Category";
 import Offer from "@/models/Offer";
@@ -14,9 +14,18 @@ export async function GET(request: NextRequest) {
       return authResult;
     }
 
-    await dbConnect();
+    await connectDB();
 
-    // Get product statistics
+    // Get shopId from environment variable
+    const shopId = process.env.SHOP_ID;
+    if (!shopId) {
+      return NextResponse.json(
+        { success: false, message: "Shop ID not configured" },
+        { status: 500 }
+      );
+    }
+
+    // Get product statistics for the specific shop
     const [
       totalProducts,
       inStockProducts,
@@ -26,25 +35,27 @@ export async function GET(request: NextRequest) {
       activeOffers,
       mostViewedProductsRaw,
     ] = await Promise.all([
-      Product.countDocuments(),
-      Product.countDocuments({ inStock: true }),
-      Product.countDocuments({ stockQuantity: { $lt: 10 } }),
-      Product.countDocuments({ featured: true }),
-      Category.countDocuments(),
+      Product.countDocuments({ shopId }),
+      Product.countDocuments({ shopId, inStock: true }),
+      Product.countDocuments({ shopId, stockQuantity: { $lt: 10 } }),
+      Product.countDocuments({ shopId, featured: true }),
+      Category.countDocuments({ shopId }),
       Offer.countDocuments({
+        shopId,
         isActive: true,
         startDate: { $lte: new Date() },
         endDate: { $gte: new Date() },
       }),
-      Product.find({})
+      Product.find({ shopId })
         .sort({ views: -1 })
         .limit(5)
         .select("name nameEnglish price unit views images categoryId")
         .lean(),
     ]);
 
-    // Calculate total views
+    // Calculate total views for the specific shop
     const viewsAggregation = await Product.aggregate([
+      { $match: { shopId } },
       { $group: { _id: null, totalViews: { $sum: "$views" } } },
     ]);
     const totalViews = viewsAggregation[0]?.totalViews || 0;
@@ -54,8 +65,11 @@ export async function GET(request: NextRequest) {
       mostViewedProductsRaw
     );
 
-    // Get low stock products for alerts and apply offers
-    const lowStockAlertsRaw = await Product.find({ stockQuantity: { $lt: 10 } })
+    // Get low stock products for alerts and apply offers for the specific shop
+    const lowStockAlertsRaw = await Product.find({
+      shopId,
+      stockQuantity: { $lt: 10 },
+    })
       .sort({ stockQuantity: 1 })
       .limit(5)
       .select("name nameEnglish price unit stockQuantity categoryId")

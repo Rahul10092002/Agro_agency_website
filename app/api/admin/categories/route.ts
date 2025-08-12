@@ -23,7 +23,20 @@ export async function GET(request: NextRequest) {
 
     await dbConnect();
 
-    const categories = await Category.find({}).sort({ name: 1 }).lean();
+    const shopId = process.env.SHOP_ID;
+
+    if (!shopId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "SHOP_ID environment variable is not configured",
+          messageHindi: "दुकान ID कॉन्फ़िगर नहीं है",
+        },
+        { status: 500 }
+      );
+    }
+
+    const categories = await Category.find({ shopId }).sort({ name: 1 }).lean();
 
     return NextResponse.json({
       success: true,
@@ -48,6 +61,19 @@ export async function POST(request: NextRequest) {
 
     await dbConnect();
 
+    const shopId = process.env.SHOP_ID;
+
+    if (!shopId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "SHOP_ID environment variable is not configured",
+          messageHindi: "दुकान ID कॉन्फ़िगर नहीं है",
+        },
+        { status: 500 }
+      );
+    }
+
     const categoryData = await request.json();
 
     // Validate required fields
@@ -63,8 +89,8 @@ export async function POST(request: NextRequest) {
     let slug = baseSlug;
     let counter = 1;
 
-    // Ensure slug is unique
-    while (await Category.findOne({ slug })) {
+    // Ensure slug is unique within the shop
+    while (await Category.findOne({ slug, shopId })) {
       slug = `${baseSlug}-${counter}`;
       counter++;
     }
@@ -72,6 +98,7 @@ export async function POST(request: NextRequest) {
     const category = new Category({
       ...categoryData,
       slug,
+      shopId,
       createdAt: new Date(),
       updatedAt: new Date(),
     });

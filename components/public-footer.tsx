@@ -1,7 +1,44 @@
 import { Phone, MessageCircle, Mail, MapPin, Clock } from "lucide-react";
-import { contactInfo } from "@/lib/data";
+import { useContactInfo } from "@/contexts/shop-context";
 
 export function PublicFooter() {
+  const { contactInfo, loading, error } = useContactInfo();
+
+  // Show loading state
+  if (loading) {
+    return (
+      <footer className="bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="animate-pulse">
+            <div className="h-6 bg-gray-700 rounded mb-4 w-1/4"></div>
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-700 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-700 rounded w-1/2"></div>
+              <div className="h-4 bg-gray-700 rounded w-2/3"></div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    );
+  }
+
+  // Show error state
+  if (error || !contactInfo) {
+    return (
+      <footer className="bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center">
+            <p className="text-red-400 font-hindi">
+              दुकान की जानकारी लोड करने में त्रुटि
+            </p>
+            <p className="text-gray-400 text-sm mt-2">
+              कृपया पेज को रीफ्रेश करें
+            </p>
+          </div>
+        </div>
+      </footer>
+    );
+  }
   return (
     <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

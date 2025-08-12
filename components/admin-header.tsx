@@ -4,12 +4,13 @@ import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { contactInfo } from "@/lib/data";
+import { useContactInfo } from "@/contexts/shop-context";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export function AdminHeader() {
   const { user, logout } = useAuth();
+  const { contactInfo, loading } = useContactInfo();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -23,6 +24,7 @@ export function AdminHeader() {
     { label: "उत्पाद", href: "/admin/products" },
     { label: "श्रेणियां", href: "/admin/categories" },
     { label: "ऑफर", href: "/admin/offers" },
+    { label: "दुकान सेटिंग", href: "/admin/shop-settings" },
   ];
 
   return (
@@ -31,7 +33,7 @@ export function AdminHeader() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-8">
             <h1 className="text-xl font-bold text-primary-green font-hindi">
-              {contactInfo.shopName}- एडमिन पैनल
+              {contactInfo?.shopName || "दुकान"} - एडमिन पैनल
             </h1>
 
             {/* Desktop Navigation */}

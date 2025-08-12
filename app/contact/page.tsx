@@ -1,64 +1,124 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { PublicHeader } from "@/components/public-header"
-import { PublicFooter } from "@/components/public-footer"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { contactInfo } from "@/lib/data"
-import { Phone, MessageCircle, Mail, MapPin, Clock, Send, User, MessageSquare } from "lucide-react"
+import { useState } from "react";
+import { PublicHeader } from "@/components/public-header";
+import { PublicFooter } from "@/components/public-footer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useContactInfo } from "@/contexts/shop-context";
+import {
+  Phone,
+  MessageCircle,
+  Mail,
+  MapPin,
+  Clock,
+  Send,
+  User,
+  MessageSquare,
+} from "lucide-react";
 
 export default function ContactPage() {
+  const { contactInfo, loading, error } = useContactInfo();
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     message: "",
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    if (!contactInfo) return;
+
+    setIsSubmitting(true);
 
     // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // In a real app, this would send to backend
-    const whatsappMessage = `नमस्ते! मेरा नाम ${formData.name} है।\nफोन: ${formData.phone}\nसंदेश: ${formData.message}`
-    const whatsappUrl = `https://wa.me/${contactInfo.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(whatsappMessage)}`
-    window.open(whatsappUrl, "_blank")
+    const whatsappMessage = `नमस्ते! मेरा नाम ${formData.name} है।\nफोन: ${formData.phone}\nसंदेश: ${formData.message}`;
+    const whatsappUrl = `https://wa.me/${contactInfo.whatsapp.replace(
+      /[^0-9]/g,
+      ""
+    )}?text=${encodeURIComponent(whatsappMessage)}`;
+    window.open(whatsappUrl, "_blank");
 
-    setFormData({ name: "", phone: "", message: "" })
-    setIsSubmitting(false)
-  }
+    setFormData({ name: "", phone: "", message: "" });
+    setIsSubmitting(false);
+  };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
-    })
-  }
+    });
+  };
 
   const handleWhatsAppDirect = () => {
-    const message = "नमस्ते! मुझे आपके उत्पादों के बारे में जानकारी चाहिए।"
-    const whatsappUrl = `https://wa.me/${contactInfo.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(message)}`
-    window.open(whatsappUrl, "_blank")
-  }
+    if (!contactInfo) return;
+    const message = "नमस्ते! मुझे आपके उत्पादों के बारे में जानकारी चाहिए।";
+    const whatsappUrl = `https://wa.me/${contactInfo.whatsapp.replace(
+      /[^0-9]/g,
+      ""
+    )}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank");
+  };
 
   const handlePhoneCall = () => {
-    window.location.href = `tel:${contactInfo.phone}`
-  }
+    if (!contactInfo) return;
+    window.location.href = `tel:${contactInfo.phone}`;
+  };
 
   const handleEmailClick = () => {
-    window.location.href = `mailto:${contactInfo.email}`
-  }
+    if (!contactInfo) return;
+    window.location.href = `mailto:${contactInfo.email}`;
+  };
 
   const handleMapClick = () => {
-    window.open(contactInfo.mapUrl, "_blank")
+    if (!contactInfo?.mapUrl) return;
+    window.open(contactInfo.mapUrl, "_blank");
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <PublicHeader />
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-green mx-auto"></div>
+            <p className="mt-4 text-lg font-hindi">
+              संपर्क जानकारी लोड हो रही है...
+            </p>
+          </div>
+        </main>
+        <PublicFooter />
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !contactInfo) {
+    return (
+      <div className="min-h-screen bg-white">
+        <PublicHeader />
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <p className="text-red-600 text-lg font-hindi">
+              संपर्क जानकारी लोड करने में त्रुटि
+            </p>
+            <p className="text-gray-600 mt-2">कृपया पेज को रीफ्रेश करें</p>
+          </div>
+        </main>
+        <PublicFooter />
+      </div>
+    );
   }
 
   return (
@@ -68,8 +128,12 @@ export default function ContactPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 font-hindi mb-4">संपर्क करें</h1>
-          <p className="text-xl text-gray-600 font-hindi">हमसे जुड़ें और अपनी खेती की जरूरतों के लिए सही सलाह पाएं</p>
+          <h1 className="text-4xl font-bold text-gray-900 font-hindi mb-4">
+            संपर्क करें
+          </h1>
+          <p className="text-xl text-gray-600 font-hindi">
+            हमसे जुड़ें और अपनी खेती की जरूरतों के लिए सही सलाह पाएं
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -85,7 +149,10 @@ export default function ContactPage() {
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 font-hindi mb-2">
+                    <label
+                      htmlFor="name"
+                      className="block text-sm font-medium text-gray-700 font-hindi mb-2"
+                    >
                       आपका नाम *
                     </label>
                     <div className="relative">
@@ -104,7 +171,10 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 font-hindi mb-2">
+                    <label
+                      htmlFor="phone"
+                      className="block text-sm font-medium text-gray-700 font-hindi mb-2"
+                    >
                       फोन नंबर *
                     </label>
                     <div className="relative">
@@ -123,7 +193,10 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 font-hindi mb-2">
+                    <label
+                      htmlFor="message"
+                      className="block text-sm font-medium text-gray-700 font-hindi mb-2"
+                    >
                       आपका संदेश *
                     </label>
                     <Textarea
@@ -156,7 +229,8 @@ export default function ContactPage() {
 
                 <div className="mt-6 p-4 bg-green-50 rounded-lg">
                   <p className="text-sm text-green-800 font-hindi">
-                    📱 यह फॉर्म आपको सीधे हमारे WhatsApp पर भेज देगा। आप तुरंत जवाब पा सकेंगे!
+                    📱 यह फॉर्म आपको सीधे हमारे WhatsApp पर भेज देगा। आप तुरंत
+                    जवाब पा सकेंगे!
                   </p>
                 </div>
               </CardContent>
@@ -208,7 +282,9 @@ export default function ContactPage() {
                   <MapPin className="h-5 w-5 text-primary-green mt-1 flex-shrink-0" />
                   <div>
                     <p className="font-medium font-hindi">पता:</p>
-                    <p className="text-gray-600 font-hindi text-sm">{contactInfo.address}</p>
+                    <p className="text-gray-600 font-hindi text-sm">
+                      {contactInfo.address}
+                    </p>
                     <Button
                       onClick={handleMapClick}
                       variant="link"
@@ -223,7 +299,9 @@ export default function ContactPage() {
                   <Clock className="h-5 w-5 text-primary-green flex-shrink-0" />
                   <div>
                     <p className="font-medium font-hindi">खुलने का समय:</p>
-                    <p className="text-gray-600 font-hindi text-sm">{contactInfo.timings}</p>
+                    <p className="text-gray-600 font-hindi text-sm">
+                      {contactInfo.timings}
+                    </p>
                   </div>
                 </div>
 
@@ -231,7 +309,9 @@ export default function ContactPage() {
                   <User className="h-5 w-5 text-primary-green flex-shrink-0" />
                   <div>
                     <p className="font-medium font-hindi">मालिक:</p>
-                    <p className="text-gray-600 font-hindi text-sm">{contactInfo.ownerName}</p>
+                    <p className="text-gray-600 font-hindi text-sm">
+                      {contactInfo.ownerName}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -273,28 +353,40 @@ export default function ContactPage() {
           <Card>
             <CardContent className="p-8">
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 font-hindi mb-4">हमसे क्यों खरीदें?</h2>
+                <h2 className="text-2xl font-bold text-gray-900 font-hindi mb-4">
+                  हमसे क्यों खरीदें?
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
                   <div className="text-center">
                     <div className="w-16 h-16 bg-primary-green rounded-full flex items-center justify-center mx-auto mb-4">
                       <span className="text-2xl text-white">🌱</span>
                     </div>
-                    <h3 className="font-bold font-hindi mb-2">बेहतरीन गुणवत्ता</h3>
-                    <p className="text-gray-600 font-hindi text-sm">सभी उत्पाद प्रमाणित और उच्च गुणवत्ता वाले हैं</p>
+                    <h3 className="font-bold font-hindi mb-2">
+                      बेहतरीन गुणवत्ता
+                    </h3>
+                    <p className="text-gray-600 font-hindi text-sm">
+                      सभी उत्पाद प्रमाणित और उच्च गुणवत्ता वाले हैं
+                    </p>
                   </div>
                   <div className="text-center">
                     <div className="w-16 h-16 bg-primary-green rounded-full flex items-center justify-center mx-auto mb-4">
                       <span className="text-2xl text-white">💰</span>
                     </div>
                     <h3 className="font-bold font-hindi mb-2">सही दाम</h3>
-                    <p className="text-gray-600 font-hindi text-sm">बाजार से कम दाम में बेहतरीन सामान</p>
+                    <p className="text-gray-600 font-hindi text-sm">
+                      बाजार से कम दाम में बेहतरीन सामान
+                    </p>
                   </div>
                   <div className="text-center">
                     <div className="w-16 h-16 bg-primary-green rounded-full flex items-center justify-center mx-auto mb-4">
                       <span className="text-2xl text-white">🤝</span>
                     </div>
-                    <h3 className="font-bold font-hindi mb-2">विश्वसनीय सेवा</h3>
-                    <p className="text-gray-600 font-hindi text-sm">15 साल से किसानों की सेवा कर रहे हैं</p>
+                    <h3 className="font-bold font-hindi mb-2">
+                      विश्वसनीय सेवा
+                    </h3>
+                    <p className="text-gray-600 font-hindi text-sm">
+                      15 साल से किसानों की सेवा कर रहे हैं
+                    </p>
                   </div>
                 </div>
               </div>
@@ -305,5 +397,5 @@ export default function ContactPage() {
 
       <PublicFooter />
     </div>
-  )
+  );
 }

@@ -16,7 +16,23 @@ export async function GET(
 
     await dbConnect();
 
-    const product = await Product.findById(params.id).lean();
+    const shopId = process.env.SHOP_ID;
+
+    if (!shopId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "SHOP_ID environment variable is not configured",
+          messageHindi: "दुकान ID कॉन्फ़िगर नहीं है",
+        },
+        { status: 500 }
+      );
+    }
+
+    const product = await Product.findOne({
+      _id: params.id,
+      shopId,
+    }).lean();
 
     if (!product) {
       return NextResponse.json(
@@ -51,13 +67,30 @@ export async function PUT(
 
     await dbConnect();
 
+    const shopId = process.env.SHOP_ID;
+
+    if (!shopId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "SHOP_ID environment variable is not configured",
+          messageHindi: "दुकान ID कॉन्फ़िगर नहीं है",
+        },
+        { status: 500 }
+      );
+    }
+
     const updateData = await request.json();
     updateData.updatedAt = new Date();
 
-    const product = await Product.findByIdAndUpdate(params.id, updateData, {
-      new: true,
-      runValidators: true,
-    });
+    const product = await Product.findOneAndUpdate(
+      { _id: params.id, shopId },
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     if (!product) {
       return NextResponse.json(
@@ -93,7 +126,23 @@ export async function DELETE(
 
     await dbConnect();
 
-    const product = await Product.findByIdAndDelete(params.id);
+    const shopId = process.env.SHOP_ID;
+
+    if (!shopId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "SHOP_ID environment variable is not configured",
+          messageHindi: "दुकान ID कॉन्फ़िगर नहीं है",
+        },
+        { status: 500 }
+      );
+    }
+
+    const product = await Product.findOneAndDelete({
+      _id: params.id,
+      shopId,
+    });
 
     if (!product) {
       return NextResponse.json(

@@ -1,14 +1,15 @@
-import mongoose, { type Document, Schema } from "mongoose"
-import bcrypt from "bcryptjs"
+import mongoose, { type Document, Schema } from "mongoose";
+import bcrypt from "bcryptjs";
 
 export interface IAdminUser extends Document {
-  name: string
-  email: string
-  passwordHash: string
-  role: "admin"
-  createdAt: Date
-  updatedAt: Date
-  comparePassword(candidatePassword: string): Promise<boolean>
+  name: string;
+  email: string;
+  passwordHash: string;
+  role: "admin";
+  shopId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 const AdminUserSchema = new Schema<IAdminUser>(
@@ -25,7 +26,10 @@ const AdminUserSchema = new Schema<IAdminUser>(
       unique: true,
       lowercase: true,
       trim: true,
-      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, "कृपया वैध ईमेल दर्ज करें"],
+      match: [
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+        "कृपया वैध ईमेल दर्ज करें",
+      ],
     },
     passwordHash: {
       type: String,
@@ -38,28 +42,40 @@ const AdminUserSchema = new Schema<IAdminUser>(
       enum: ["admin"],
       default: "admin",
     },
+    shopId: {
+      type: Schema.Types.ObjectId,
+      ref: "Shop",
+      required: [true, "दुकान ID आवश्यक है"],
+    },
   },
   {
     timestamps: true,
-  },
-)
+  }
+);
+
+// Compound indexes for efficient querying
+AdminUserSchema.index({ email: 1, shopId: 1 }, { unique: true });
+AdminUserSchema.index({ shopId: 1 });
 
 // Hash password before saving
 AdminUserSchema.pre("save", async function (next) {
-  if (!this.isModified("passwordHash")) return next()
+  if (!this.isModified("passwordHash")) return next();
 
   try {
-    const salt = await bcrypt.genSalt(12)
-    this.passwordHash = await bcrypt.hash(this.passwordHash, salt)
-    next()
+    const salt = await bcrypt.genSalt(12);
+    this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
+    next();
   } catch (error) {
-    next(error)
+    next(error);
   }
-})
+});
 
 // Compare password method
-AdminUserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
-  return bcrypt.compare(candidatePassword, this.passwordHash)
-}
+AdminUserSchema.methods.comparePassword = async function (
+  candidatePassword: string
+): Promise<boolean> {
+  return bcrypt.compare(candidatePassword, this.passwordHash);
+};
 
-export default mongoose.models.AdminUser || mongoose.model<IAdminUser>("AdminUser", AdminUserSchema)
+export default mongoose.models.AdminUser ||
+  mongoose.model<IAdminUser>("AdminUser", AdminUserSchema);

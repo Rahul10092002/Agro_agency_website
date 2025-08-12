@@ -9,6 +9,19 @@ export async function GET(request: NextRequest) {
   try {
     await dbConnect();
 
+    const shopId = process.env.SHOP_ID;
+
+    if (!shopId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "SHOP_ID environment variable is not configured",
+          messageHindi: "दुकान ID कॉन्फ़िगर नहीं है",
+        },
+        { status: 500 }
+      );
+    }
+
     const url = new URL(request.url);
     const search = url.searchParams.get("search");
     const category = url.searchParams.get("category");
@@ -17,7 +30,10 @@ export async function GET(request: NextRequest) {
     const featured = url.searchParams.get("featured");
     const includeOffers = url.searchParams.get("includeOffers") !== "false"; // Default to true
 
-    const query: any = { inStock: true }; // Only show in-stock products to public
+    const query: any = {
+      shopId,
+      inStock: true,
+    }; // Only show in-stock products for this shop
 
     if (search) {
       query.$or = [
@@ -44,7 +60,7 @@ export async function GET(request: NextRequest) {
         .limit(limit)
         .lean(),
       Product.countDocuments(query),
-      Category.find({}).sort({ name: 1 }).lean(),
+      Category.find({ shopId }).sort({ name: 1 }).lean(),
     ]);
 
     // Apply offers to products if requested

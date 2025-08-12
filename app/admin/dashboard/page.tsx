@@ -371,7 +371,7 @@ export default function AdminDashboardPage() {
                   >
                     <Package className="h-8 w-8 mx-auto mb-2 text-primary-green" />
                     <p className="font-hindi text-sm font-medium">
-                      उत्पाद ���्रबंधन
+                      उत्पाद प्रबंधन
                     </p>
                   </a>
                   <a

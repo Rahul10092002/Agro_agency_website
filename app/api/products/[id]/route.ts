@@ -11,7 +11,23 @@ export async function GET(
   try {
     await dbConnect();
 
-    const product = await Product.findById(params.id).lean();
+    const shopId = process.env.SHOP_ID;
+
+    if (!shopId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "SHOP_ID environment variable is not configured",
+          messageHindi: "दुकान ID कॉन्फ़िगर नहीं है",
+        },
+        { status: 500 }
+      );
+    }
+
+    const product = await Product.findOne({
+      _id: params.id,
+      shopId,
+    }).lean();
 
     if (!product) {
       return NextResponse.json(

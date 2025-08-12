@@ -1,23 +1,26 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Search, Menu, X, Phone, MessageCircle } from "lucide-react"
-import { contactInfo } from "@/lib/data"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search, Menu, X, Phone, MessageCircle } from "lucide-react";
+import { useContactInfo } from "@/contexts/shop-context";
 
 export function PublicHeader() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
+  const { contactInfo, loading } = useContactInfo();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (searchQuery.trim()) {
-      window.location.href = `/products?search=${encodeURIComponent(searchQuery)}`
+      window.location.href = `/products?search=${encodeURIComponent(
+        searchQuery
+      )}`;
     }
-  }
+  };
 
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
@@ -28,14 +31,20 @@ export function PublicHeader() {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-1">
                 <Phone className="h-3 w-3" />
-                <span className="font-hindi">{contactInfo.phone}</span>
+                <span className="font-hindi">
+                  {loading
+                    ? "..."
+                    : contactInfo?.phone || "फोन नंबर लोड हो रहा है"}
+                </span>
               </div>
               <div className="hidden sm:flex items-center space-x-1">
                 <MessageCircle className="h-3 w-3" />
                 <span className="font-hindi">WhatsApp पर संपर्क करें</span>
               </div>
             </div>
-            <div className="font-hindi text-xs">{contactInfo.timings}</div>
+            <div className="font-hindi text-xs">
+              {loading ? "..." : contactInfo?.timings || "समय लोड हो रहा है"}
+            </div>
           </div>
         </div>
       </div>
@@ -50,8 +59,14 @@ export function PublicHeader() {
                 <span className="text-white font-bold text-lg">🌾</span>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-primary-green font-hindi">{contactInfo.shopName}</h1>
-                <p className="text-xs text-muted-foreground font-hindi">आपके खेत की पूरी ज़रूरत</p>
+                <h1 className="text-xl font-bold text-primary-green font-hindi">
+                  {loading
+                    ? "लोड हो रहा है..."
+                    : contactInfo?.shopName || "दुकान का नाम"}
+                </h1>
+                <p className="text-xs text-muted-foreground font-hindi">
+                  आपके खेत की पूरी ज़रूरत
+                </p>
               </div>
             </a>
           </div>
@@ -74,23 +89,44 @@ export function PublicHeader() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <a href="/" className="text-gray-700 hover:text-primary-green font-hindi font-medium">
+            <a
+              href="/"
+              className="text-gray-700 hover:text-primary-green font-hindi font-medium"
+            >
               होम
             </a>
-            <a href="/products" className="text-gray-700 hover:text-primary-green font-hindi font-medium">
+            <a
+              href="/products"
+              className="text-gray-700 hover:text-primary-green font-hindi font-medium"
+            >
               सभी उत्पाद
             </a>
-            <a href="/about" className="text-gray-700 hover:text-primary-green font-hindi font-medium">
+            <a
+              href="/about"
+              className="text-gray-700 hover:text-primary-green font-hindi font-medium"
+            >
               हमारे बारे में
             </a>
-            <a href="/contact" className="text-gray-700 hover:text-primary-green font-hindi font-medium">
+            <a
+              href="/contact"
+              className="text-gray-700 hover:text-primary-green font-hindi font-medium"
+            >
               संपर्क
             </a>
           </nav>
 
           {/* Mobile menu button */}
-          <Button variant="ghost" size="sm" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
           </Button>
         </div>
 
@@ -143,5 +179,5 @@ export function PublicHeader() {
         </div>
       )}
     </header>
-  )
+  );
 }

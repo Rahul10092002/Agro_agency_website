@@ -15,6 +15,7 @@ export interface IOffer extends Document {
   usageLimit?: number;
   usedCount: number;
   applicableToAll: boolean;
+  shopId: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -91,6 +92,11 @@ const OfferSchema = new Schema<IOffer>(
       type: Boolean,
       default: false,
     },
+    shopId: {
+      type: Schema.Types.ObjectId,
+      ref: "Shop",
+      required: [true, "दुकान ID आवश्यक है"],
+    },
   },
   {
     timestamps: true,
@@ -120,8 +126,9 @@ OfferSchema.virtual("isCurrentlyActive").get(function () {
 });
 
 // Index for efficient queries
-OfferSchema.index({ isActive: 1, startDate: 1, endDate: 1 });
-OfferSchema.index({ productIds: 1 });
-OfferSchema.index({ categoryIds: 1 });
+OfferSchema.index({ shopId: 1, isActive: 1, startDate: 1, endDate: 1 });
+OfferSchema.index({ shopId: 1, productIds: 1 });
+OfferSchema.index({ shopId: 1, categoryIds: 1 });
+OfferSchema.index({ shopId: 1, createdAt: -1 });
 
 export default mongoose.model<IOffer>("Offer", OfferSchema);
